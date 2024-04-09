@@ -1,27 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GRE Words Learning</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body>
     <div class="container mt-5">
         <h2>GRE Words</h2>
-        <div class="filters mb-3">
+        <div>
             <label for="minForgetCount">Minimum Forget Count:</label>
-            <input type="number" id="minForgetCount" min="0" value="0">
-            
-            <label for="reciteDate">Recite Date (YYYY-MM-DD):</label>
-            <input type="date" id="afterDate">
-            
-            <button class="btn btn-info"  onclick=loadMoreIndex() id="loadMore">Load More</button>
-            
+            <select id="minForgetCount">
+                <option value="-1">-1</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select>
+        </div>
+
+        <!-- <div>
+            <label for="partOfSpeech">Part of Speech:</label>
+            <select id="partOfSpeech">
+                <option value="noun">Noun</option>
+                <option value="verb">Verb</option>
+                <option value="adjective">Adjective</option>
+                <option value="adverb">Adverb</option>
+                <option value="preposition">Preposition</option>
+                <option value="conjunction">Conjunction</option>
+                <option value="interjection">Interjection</option>
+            </select>
+        </div> -->
+
+        <div>
+            <label for="reciteDate">Recite Date:</label>
+            <select id="reciteDate">
+                <option value="showAll">Show All</option>
+                <option value="2024-04-08">2024-04-08</option>
+                <option value="2024-04-09">2024-04-09</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="PageIndex">Page Index:</label>
+            <input type="number" id="PageIndex" value="0">
+            <button class="btn btn-info" onclick="upadtePageIndex()">Go</button>
+        </div>
+
+        <div id="PageDisplay" class="row"> </div>
+
+        <div class="filters mb-3">
+
+            <button class="btn btn-info" onclick=nextPage() id="NextPage">Next Page</button>
+
+            <button class="btn btn-info" onclick=prePage() id="PrePage">Pre Page</button>
+
             <button class="btn btn-info" onclick="applyFilters()">Apply Filters</button>
 
-            <button class="btn btn-info" onclick="show_toggle_definition = !show_toggle_definition; applyFilters()">Toggle Definition</button>
-            
+            <button class="btn btn-info"
+                onclick="show_toggle_definition = !show_toggle_definition; applyFilters()">Toggle Definition</button>
 
             <div id="wordsDisplay" class="row"></div>
         </div>
@@ -51,7 +92,7 @@
             nextBatchOfWords.forEach((word, index) => {
                 const wordElement = document.createElement('div');
                 wordElement.className = 'col-md-4 mb-3';
-                if (show_toggle_definition){
+                if (show_toggle_definition) {
                     wordElement.innerHTML = `
                         <div>
                             <h4>${word.word} (${word.part_of_speech})</h4>
@@ -61,49 +102,98 @@
                         </div>
                     `;
                 }
-                else{
+                else {
                     wordElement.innerHTML = `
                         <div>
-                            <h4>${word.word} (${word.part_of_speech})</h4>
+                            <h4>${word.word} (${word.part_of_speech}) (${word.first_recite_date})</h4>
                             <p id="definition-${index}">${word.definition}</p>
+                            <p>Forget Count: ${word.forget_count}</p>
+                            <button class="btn btn-secondary btn-sm" onclick="forgetWord(${index})">Fogot</button>
                         </div>
                     `;
                 }
                 container.appendChild(wordElement);
             });
+            displayPageIndex();
         }
 
-        function loadMoreIndex(){
+        function forgetWord(index) {
+            words[index].forget_count += 1;
+
+            fetch('/update-words', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(words),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Success:', data);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+
+            //alert(`Forget count for "${words[index].word}" incremented. New count: ${words[index].forget_count}`);
+            applyFilters();
+        }
+
+        function nextPage() {
             currentIndex += wordsPerPage; // Update the index to load the next batch
             if (currentIndex >= words.length) {
-                document.getElementById('loadMore').style.display = 'none'; // Hide the button if no more words to load
+                currentIndex = words.length - 1;
             }
             applyFilters();
         }
 
-        function displayWords(filteredWords) {
-            const container = document.getElementById('wordsDisplay');
-            const nextBatchOfWords = words.slice(currentIndex, currentIndex + wordsPerPage); // Get the next batch of 50 words
-            nextBatchOfWords.forEach(filteredWords => {
-                const wordElement = document.createElement('div');
-                wordElement.className = 'col-md-4 mb-3';
-                wordElement.innerHTML = `<h4>${filteredWords.word} (${filteredWords.part_of_speech})</h4><p>${filteredWords.definition}</p>`;
-                container.appendChild(wordElement);
-            });
+        function prePage() {
+            currentIndex -= wordsPerPage; // Update the index to load the next batch
+            if (currentIndex < 0) {
+                currentIndex = 0;
+            }
+            applyFilters();
+        }
+
+        function loadMoreIndex() {
             currentIndex += wordsPerPage; // Update the index to load the next batch
             if (currentIndex >= words.length) {
-                document.getElementById('loadMore').style.display = 'none'; // Hide the button if no more words to load
+                currentIndex = words.length - 1;
             }
+            applyFilters();
+        }
+
+        function displayPageIndex() {
+            const container = document.getElementById('PageDisplay');
+            container.innerHTML = ''; // Clear previous words
+            const wordElement = document.createElement('div');
+            wordElement.className = 'col-md-4 mb-3';
+            wordElement.innerHTML = `
+                        <div>
+                            <h4>${currentIndex} / ${words.length}</h4>
+                        </div>
+                    `;
+            container.appendChild(wordElement);
         }
 
         function applyFilters() {
             const minForgetCount = document.getElementById('minForgetCount').value;
-            const afterDate = document.getElementById('afterDate').value;
-            const filteredWords = words.filter(word => 
-                word.forget_count >= minForgetCount && 
-                (!afterDate || new Date(word.first_recite_date) >= new Date(afterDate))
+            const reciteDate = document.getElementById('reciteDate').value;
+            // change date format
+            const filteredWords = words.filter(word =>
+                word.forget_count >= minForgetCount &&
+                (word.first_recite_date === reciteDate || reciteDate === 'showAll')
             );
             displayWordsold(filteredWords); // Display first 100 filtered words
+        }
+
+        function upadtePageIndex() {
+            const PageIndex = document.getElementById('PageIndex').value;
+            currentIndex = PageIndex * wordsPerPage;
+            if (currentIndex >= words.length) {
+                currentIndex = words.length - wordsPerPage;
+            }
+            applyFilters();
         }
 
         // Initial display
@@ -111,8 +201,16 @@
             .then(response => response.json())
             .then(data => {
                 words = data;
+                for (let i = 0; i <= words.length; i++) {
+                    try {
+                        words[i].first_recite_date = words[i].first_recite_date.split(' ')[0];
+                    } catch (error) {
+                        break;
+                    }
+                }
                 displayWordsold(words); // Initially display first 100 words
             });
     </script>
 </body>
+
 </html>
