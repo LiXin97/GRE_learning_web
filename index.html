@@ -116,6 +116,7 @@
     </header>
     <main class="container mt-5">
         <div id="wordsDisplay" class="row"></div>
+        <div id="NoneListWords"></div>
         <!-- Pagination buttons and other interactions -->
     </main>
     </div>
@@ -244,12 +245,47 @@
         }
 
         function searchWords() {
-            const searchWord = document.getElementById('SearchWord').value.toLowerCase(); // 将搜索词转换为小写
-            // 模糊搜索
-            const filteredWords = words.filter(word =>
-                word.word.toLowerCase().includes(searchWord) // 同样将单词转换为小写进行比较
-            );
-            displayWordsold(filteredWords); // 使用你的显示函数显示过滤后的单词
+            const searchWord = document.getElementById('SearchWord').value.toLowerCase();
+            const filteredWords = words.filter(word => word.word.toLowerCase().includes(searchWord));
+            const correctWord = filteredWords.find(word => word.word.toLowerCase() === searchWord);
+
+            // Clear previous search results
+            const wordsDisplay = document.getElementById('wordsDisplay');
+            const noneListWords = document.getElementById('NoneListWords');
+            wordsDisplay.innerHTML = '';
+            noneListWords.innerHTML = '';
+
+            if (correctWord) {
+                // If there's an exact match, display it (and potentially similar words)
+                displayWordsold(filteredWords);
+            } else {
+                // No exact match found; attempt to fetch definitions for the entered word
+                noneListWords.innerHTML = `<h4>None List Words: ${searchWord}</h4>`;
+                fetchAndDisplayDefinitions(searchWord, noneListWords);
+
+                // If there are similar words, display them
+                if (filteredWords.length > 0) {
+                    displayWordsold(filteredWords);
+                }
+            }
+        }
+
+        function fetchAndDisplayDefinitions(word, displayElement) {
+            fetchWordDefinitions(word)
+                .then(definitions => {
+                    if (definitions && definitions.length > 0) {
+                        definitions.forEach(definition => {
+                            displayElement.innerHTML += `<p style="margin: 0;">${definition}</p>`;
+                        });
+                    } else {
+                        // No definitions found
+                        displayElement.innerHTML += `<p>No definitions found for "${word}".</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    displayElement.innerHTML += `<p>Error: Could not retrieve any definitions for "${word}".</p>`;
+                });
         }
 
         function applyFilters() {
@@ -338,7 +374,20 @@
                 definitions.push('<b>◙ PartOfSpeech</b>: ' + meaning.partOfSpeech)
                 for (let j = 0; j < definitionsArray.length; j++) {
                     let currentDefinition = definitionsArray[j];
-                    definitions.push('&emsp;&emsp;<b>definition</b> ' + (j+1).toString() + ': ' + currentDefinition.definition);
+                    definitions.push('&emsp;&emsp;<b>definition</b> ' + (j + 1).toString() + ': ' + currentDefinition.definition);
+                    if (currentDefinition.example) {
+                        definitions.push('&emsp;&emsp;<b>example</b>: ' + currentDefinition.example);
+                    }
+                    if (currentDefinition.synonyms) {
+                        if (currentDefinition.synonyms.length > 0) {
+                            definitions.push('&emsp;&emsp;<b>synonyms</b>: ' + currentDefinition.synonyms.join(', '));
+                        }
+                    }
+                    if (currentDefinition.antonyms) {
+                        if (currentDefinition.antonyms.length > 0) {
+                            definitions.push('&emsp;&emsp;<b>antonyms</b>: ' + currentDefinition.antonyms.join(', '));
+                        }
+                    }
                 }
             }
             return definitions;
