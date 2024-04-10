@@ -376,16 +376,16 @@
                     let currentDefinition = definitionsArray[j];
                     definitions.push('&emsp;&emsp;<b>definition</b> ' + (j + 1).toString() + ': ' + currentDefinition.definition);
                     if (currentDefinition.example) {
-                        definitions.push('&emsp;&emsp;<b>example</b>: ' + currentDefinition.example);
+                        definitions.push('&emsp;&emsp;&emsp;<b>example</b>: ' + currentDefinition.example);
                     }
                     if (currentDefinition.synonyms) {
                         if (currentDefinition.synonyms.length > 0) {
-                            definitions.push('&emsp;&emsp;<b>synonyms</b>: ' + currentDefinition.synonyms.join(', '));
+                            definitions.push('&emsp;&emsp;&emsp;<b>synonyms</b>: ' + currentDefinition.synonyms.join(', '));
                         }
                     }
                     if (currentDefinition.antonyms) {
                         if (currentDefinition.antonyms.length > 0) {
-                            definitions.push('&emsp;&emsp;<b>antonyms</b>: ' + currentDefinition.antonyms.join(', '));
+                            definitions.push('&emsp;&emsp;&emsp;<b>antonyms</b>: ' + currentDefinition.antonyms.join(', '));
                         }
                     }
                 }
