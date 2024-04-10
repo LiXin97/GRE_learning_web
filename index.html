@@ -78,12 +78,9 @@
                 <button class="btn btn-info" onclick="upadtePageIndex()">Go</button>
 
                 <label for="WordsPerPage">Words Per Page:</label>
-                <input type="number" id="WordsPerPage" value="50" style="width: 50px; margin-right: 10px;">
+                <input type="number" id="WordsPerPage" value="9" style="width: 50px; margin-right: 10px;">
                 <button class="btn btn-info" onclick="upadteWordsPerPage()">Go</button>
             </div>
-
-
-            <div id="PageDisplay" class="row"> </div>
 
             <div class="filters mb-3">
 
@@ -151,7 +148,15 @@
                 }
                 container.appendChild(wordElement);
             });
-            displayPageIndex();
+           
+            UpdatePageIndex();
+        }
+
+        function UpdatePageIndex() {
+            const PageIndex = currentIndex / wordsPerPage;
+            document.getElementById('PageIndex').value = PageIndex;
+            const TotalPage = Math.ceil(words.length / wordsPerPage);
+            document.getElementById('TotalPage').innerHTML = TotalPage;
         }
 
         function forgetWord(index) {
@@ -181,6 +186,8 @@
             if (currentIndex >= words.length) {
                 currentIndex = words.length - wordsPerPage;
             }
+            const PageIndex = currentIndex / wordsPerPage;
+            document.getElementById('PageIndex').value = PageIndex;
             applyFilters();
         }
 
@@ -189,6 +196,8 @@
             if (currentIndex < 0) {
                 currentIndex = 0;
             }
+            const PageIndex = currentIndex / wordsPerPage;
+            document.getElementById('PageIndex').value = PageIndex;
             applyFilters();
         }
 
