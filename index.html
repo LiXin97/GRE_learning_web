@@ -8,20 +8,10 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .header-content {
-            position: fixed;
-            /* Fix the header at the top of the viewport */
+            position: absolute;
             top: 0;
-            /* Align the top edge of the header with the top edge of the viewport */
             width: 100%;
-            /* Ensure the header spans the full width of the viewport */
             background-color: white;
-            /* Optional: Set a background color for the header */
-            z-index: 1000;
-            /* Ensure the header sits above other content */
-        }
-
-        main {
-            padding-top: 20px;
         }
 
         @media (max-width: 768px) {
@@ -53,9 +43,6 @@
 
     <header class="header-content">
         <div class="container mt-5">
-            <h2 class="text-center">
-                GRE Words Learning
-            </h2>
             <div>
                 <label for="SearchWords">Search Words:</label>
                 <input type="text" id="SearchWord">
