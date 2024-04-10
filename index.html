@@ -62,6 +62,14 @@
                 <button class="btn btn-info" onclick="searchWords()">Search</button>
             </div>
 
+            <!-- <div>
+
+                <h1>Fetch the definitions for a word!</h1>
+                <input type="text" id="word" name="word">
+                <input type="button" value="Fetch" onClick="getWordDefinitions()">
+                <div id="definitions"></div>
+            </div> -->
+
             <div>
                 <label for="minForgetCount">Minimum Forget Count:</label>
                 <select id="minForgetCount">
@@ -153,8 +161,9 @@
                         <div>
                             <h4>${word.word} (${word.part_of_speech}) (${word.first_recite_date})</h4>
                             <p id="definition-${index}">${word.definition}</p>
-                            <p>Forget Count: ${word.forget_count}</p>
-                            <button class="btn btn-secondary btn-sm" onclick="forgetWord(${index})">Fogot</button>
+                            <button class="btn btn-secondary btn-sm" onclick="lookUp('${word.word}', ${index})">Look Up</button>
+                            <button class="btn btn-secondary btn-sm" onclick="clooseLookUp('${index}')">Close</button>
+                            <div id="definitions_word_${index}"></div>
                         </div>
                     `;
                 }
@@ -313,6 +322,63 @@
             mainContent.style.paddingTop = `${headerHeight}px`;
         }
 
+        const DICTIONARY_API_BASE_URL =
+            'https://api.dictionaryapi.dev/api/v2/entries/en/';
+        const DEFINITIONS_DIV = document.getElementById('definitions');
+
+        const fetchWordDefinitions = async word => {
+            console.log(`Making request for definitions of ${word}...`);
+            const response = await fetch(DICTIONARY_API_BASE_URL + word);
+            const json = await response.json();
+            let meanings = json[0].meanings;
+            let definitions = [];
+            for (let i = 0; i < meanings.length; i++) {
+                let meaning = meanings[i];
+                let definitionsArray = meaning.definitions;
+                definitions.push('<b>◙ PartOfSpeech</b>: ' + meaning.partOfSpeech)
+                for (let j = 0; j < definitionsArray.length; j++) {
+                    let currentDefinition = definitionsArray[j];
+                    definitions.push('&emsp;&emsp;<b>definition</b> ' + (j+1).toString() + ': ' + currentDefinition.definition);
+                }
+            }
+            return definitions;
+        };
+
+        function clooseLookUp(index) {
+            const show_defi = document.getElementById('definitions_word_' + index);
+            show_defi.innerHTML = '';
+        }
+
+        function lookUp(word, index) {
+            const show_defi = document.getElementById('definitions_word_' + index);
+            show_defi.innerHTML = '';
+            fetchWordDefinitions(word)
+                .then(defintions => {
+                    defintions.forEach(d => {
+                        show_defi.innerHTML += `<p style="margin: 0;">${d}</p>`;
+                    });
+                })
+                .catch(_ => {
+                    show_defi.innerHTML += `<p>Error: Could not retrive any defintions for ${word}.</p>`;
+                });
+        }
+
+        const getWordDefinitions = () => {
+            const word = document.getElementById('word').value;
+            if (word == null || word == '') {
+                return alert('Error: You must enter a word to fetch');
+            }
+            DEFINITIONS_DIV.innerHTML = '';
+            fetchWordDefinitions(word)
+                .then(defintions => {
+                    defintions.forEach(d => {
+                        DEFINITIONS_DIV.innerHTML += `<p>${d}</p>`;
+                    });
+                })
+                .catch(_ => {
+                    DEFINITIONS_DIV.innerHTML += `<p>Error: Could not retrive any defintions for ${word}.</p>`;
+                });
+        };
     </script>
 </body>
 
